@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Harmony Haven</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E3EBE8; --bg2:#D2E0DC; --panel:#F5F8F7; --ink:#1F3239; --ink-soft:#42585F; --line:#93AAAA;
+  --accent:#2F6478; --accent-ink:#FFFFFF; --focus:#A86F00; --glow:#F3DFAA; --slot:rgba(255,255,255,.5);
+  --sky1:#C4DBE4; --sky2:#E5EEE9; --hill1:#A6C3AE; --hill2:#8DB09A; --ground:#7DA48A; --orb:#F6EBCB;
+  --shadow:rgba(31,50,57,.22);
+  --br:1; --ct:1;
+  --t:max(64px, min(120px, 27vw, 17vh));
+  --nb:min(var(--t), 21vw);
+  --gap:10px;
+  --nbw:calc(var(--nb) * 4 + var(--gap) * 3);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top, 0px);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#182328; --bg2:#1F2E34; --panel:#263840; --ink:#E6EEEC; --ink-soft:#A9BFC0; --line:#587480;
+    --accent:#86B6C8; --accent-ink:#0F1E23; --focus:#E8C46A; --glow:#E9D391; --slot:rgba(255,255,255,.08);
+    --sky1:#1D2F3D; --sky2:#2F4753; --hill1:#2F4A45; --hill2:#2A423F; --ground:#243A38; --orb:#E4E2CC;
+    --shadow:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#182328; --bg2:#1F2E34; --panel:#263840; --ink:#E6EEEC; --ink-soft:#A9BFC0; --line:#587480;
+  --accent:#86B6C8; --accent-ink:#0F1E23; --focus:#E8C46A; --glow:#E9D391; --slot:rgba(255,255,255,.08);
+  --sky1:#1D2F3D; --sky2:#2F4753; --hill1:#2F4A45; --hill2:#2A423F; --ground:#243A38; --orb:#E4E2CC;
+  --shadow:rgba(0,0,0,.45);
+}
+html{scroll-padding-top:env(safe-area-inset-top, 0px); height:100%}
+body{
+  margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--ink);
+  font-family:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size:18px; line-height:1.45; -webkit-tap-highlight-color:transparent;
+}
+*{box-sizing:border-box}
+button{font:inherit; color:inherit; cursor:pointer}
+button:focus-visible, .item:focus-visible, .gitem:focus-visible, input:focus-visible{outline:4px solid var(--focus); outline-offset:3px}
+
+#app{
+  position:relative; width:100%; height:100%; overflow:hidden;
+  background:linear-gradient(170deg, var(--bg) 0%, var(--bg2) 100%);
+  filter:brightness(var(--br)) contrast(var(--ct));
+}
+body.nomotion *{transition:none !important; animation:none !important}
+
+/* ---------- Fixed top-right navigation ---------- */
+.nav{position:absolute; top:12px; right:12px; z-index:40; display:flex; gap:var(--gap)}
+.nb{
+  width:var(--nb); height:var(--nb); border-radius:22px; border:3px solid var(--line); background:var(--panel);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:4px;
+  font-weight:700; font-size:max(12px, calc(var(--nb) * .14));
+}
+.nb svg{width:calc(var(--nb) * .38); height:calc(var(--nb) * .38); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.nb[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+
+/* ---------- Screens ---------- */
+.screen{position:absolute; inset:0; padding:12px 16px 16px; display:flex; flex-direction:column; gap:12px; min-height:0}
+.top{min-height:var(--nb); padding-right:calc(var(--nbw) + 16px); display:flex; align-items:center}
+@media (max-width:860px){ .top{padding-right:0; margin-top:calc(var(--nb) + 10px)} }
+h1{font-size:clamp(26px, 3.4vw, 38px); margin:0; line-height:1.15}
+h2{font-size:clamp(20px, 2.2vw, 26px); margin:0; line-height:1.2}
+.lead{margin:4px 0 0; font-size:clamp(17px, 1.9vw, 21px); color:var(--ink-soft)}
+
+.big{
+  min-width:120px; min-height:120px; padding:0 28px; border-radius:22px; border:3px solid var(--line);
+  background:var(--panel); font-weight:700; font-size:clamp(18px, 2vw, 22px);
+}
+.big.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+
+/* ---------- Home ---------- */
+.cards{flex:1; min-height:0; overflow:auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap:16px; align-content:start; padding:4px 2px 8px}
+.card{
+  position:relative; text-align:left; display:flex; flex-direction:column; gap:8px; padding:18px;
+  min-height:calc(var(--t) * 1.7); border-radius:26px; border:3px solid var(--line); background:var(--panel);
+}
+.card p{margin:0; color:var(--ink-soft)}
+.prev{display:flex; gap:10px}
+.prev svg{width:54px; height:54px}
+.done{position:absolute; top:14px; right:14px; font-weight:700; font-size:16px; padding:4px 12px; border-radius:999px; background:var(--accent); color:var(--accent-ink)}
+
+/* ---------- Game ---------- */
+.taskcard{display:flex; align-items:center; gap:16px; background:var(--panel); border:3px solid var(--line); border-radius:24px; padding:12px 20px; max-width:780px}
+.taskcard p{margin:0; font-weight:700; font-size:clamp(18px, 2.1vw, 25px); line-height:1.3}
+.taskcard .prev svg{width:46px; height:46px}
+.status{min-height:30px; padding:0 4px; font-size:clamp(17px, 1.9vw, 21px); color:var(--ink-soft)}
+.stage{
+  position:relative; flex:1; min-height:0; display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; justify-items:center; gap:16px;
+}
+.tray{display:flex; gap:12px; padding:12px; border-radius:28px; background:color-mix(in srgb, var(--panel) 55%, transparent); border:3px solid color-mix(in srgb, var(--line) 50%, transparent)}
+.slot{width:var(--t); height:var(--t); border-radius:24px; background:var(--slot)}
+.bowl{
+  position:relative; width:min(calc(var(--t) * 2.1), 44vw); height:calc(var(--t) * 1.6); padding:0;
+  border-radius:28px; border:3px dashed var(--line); background:transparent; transition:border-color .25s, background .25s, transform .25s;
+}
+.bowl.near{border-style:solid; border-color:var(--focus); background:color-mix(in srgb, var(--glow) 30%, transparent); transform:scale(1.02)}
+.bowl.glow{animation:glow 1.2s ease}
+@keyframes glow{0%{box-shadow:0 0 0 0 transparent} 40%{box-shadow:0 0 0 12px color-mix(in srgb, var(--glow) 55%, transparent)} 100%{box-shadow:0 0 0 0 transparent}}
+.bowlsvg{position:absolute; left:6%; right:6%; bottom:44px; height:54%; width:88%}
+.blabel{position:absolute; left:0; right:0; bottom:6px; display:flex; flex-direction:column; align-items:center; font-weight:700; font-size:clamp(16px, 1.6vw, 20px); line-height:1.2}
+.blabel .row{display:flex; align-items:center; gap:6px}
+.blabel svg{width:24px; height:24px}
+.bcount{font-weight:400; font-size:.85em; color:var(--ink-soft)}
+.item{
+  position:absolute; z-index:5; width:var(--t); height:var(--t); border-radius:24px; display:grid; place-items:center;
+  touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none; background:var(--slot);
+  transition:left .6s ease, top .6s ease, transform .45s ease, opacity .5s ease;
+}
+.item svg{width:78%; height:78%; pointer-events:none; filter:drop-shadow(0 4px 5px var(--shadow))}
+.item.dragging{transition:none; z-index:20; transform:scale(1.07) !important; cursor:grabbing}
+.item.selected{box-shadow:0 0 0 4px var(--focus)}
+.item.seated{pointer-events:none; z-index:6; background:transparent}
+.item.enter{opacity:0}
+.fx{position:absolute; inset:0; pointer-events:none; z-index:30}
+.sp{position:absolute; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--glow); animation:sp 1.3s ease-out forwards}
+@keyframes sp{from{opacity:.9; transform:translate(0,0) scale(1)} to{opacity:0; transform:translate(var(--dx), var(--dy)) scale(.3)}}
+.progress{display:flex; align-items:center; justify-content:center; gap:14px; min-height:28px; color:var(--ink-soft); font-weight:700}
+.dots{display:flex; gap:8px}
+.dots i{width:14px; height:14px; border-radius:50%; border:3px solid var(--line)}
+.dots i.on{background:var(--accent); border-color:var(--accent)}
+.complete{grid-column:1 / -1; display:flex; flex-direction:column; align-items:center; gap:16px; text-align:center; max-width:640px}
+.rewardrow{display:flex; gap:14px}
+.rewardrow svg{width:calc(var(--t) * .9); height:calc(var(--t) * .9)}
+.btnrow{display:flex; flex-wrap:wrap; gap:14px; justify-content:center}
+@media (max-width:860px){
+  .stage{grid-template-columns:1fr 1fr; grid-template-rows:auto auto; align-content:center}
+  .tray{grid-column:1 / 3; grid-row:1; gap:8px; padding:8px}
+  .bowl[data-side="0"]{grid-column:1; grid-row:2}
+  .bowl[data-side="1"]{grid-column:2; grid-row:2}
+}
+
+/* ---------- Garden ---------- */
+.scene{position:relative; flex:1; min-height:0; border-radius:28px; overflow:hidden; border:3px solid var(--line); background:linear-gradient(180deg, var(--sky1), var(--sky2))}
+.scene svg{position:absolute; inset:0; width:100%; height:100%}
+.scene .msg{position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:24px; font-weight:700; font-size:clamp(18px, 2vw, 22px); color:var(--ink)}
+.shelf{position:relative; height:calc(var(--t) + 24px); border-radius:24px; border:3px dashed var(--line); display:grid; place-items:center; color:var(--ink-soft); text-align:center; padding:0 12px}
+.gitem{position:absolute; z-index:6; width:var(--t); height:var(--t); touch-action:none; cursor:grab; transition:left .5s ease, top .5s ease}
+.gitem svg{width:100%; height:100%; pointer-events:none; filter:drop-shadow(0 3px 4px var(--shadow))}
+.gitem.dragging{transition:none; z-index:25; cursor:grabbing}
+.gitem.dragging svg{transform:scale(1.06)}
+
+/* ---------- Overlays ---------- */
+.overlay{position:absolute; inset:0; z-index:30; overflow:auto; padding:calc(var(--nb) + 28px) 16px 32px; background:color-mix(in srgb, var(--bg) 97%, transparent)}
+.ovin{max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:18px}
+.ovin.center{align-items:center; text-align:center}
+.group{display:flex; flex-direction:column; gap:12px}
+.row-s{display:flex; align-items:center; gap:16px; min-height:120px; background:var(--panel); border:3px solid var(--line); border-radius:24px; padding:0 20px}
+.row-s label{flex:0 0 150px; font-weight:700}
+.row-s output{flex:0 0 64px; text-align:right; font-weight:700}
+input[type=range]{-webkit-appearance:none; appearance:none; flex:1; min-width:0; height:120px; background:transparent; margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:16px; border-radius:8px; background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:56px; height:56px; margin-top:-20px; border-radius:50%; background:var(--accent); border:5px solid var(--panel); box-shadow:0 0 0 3px var(--accent)}
+input[type=range]::-moz-range-track{height:16px; border-radius:8px; background:var(--line)}
+input[type=range]::-moz-range-thumb{width:46px; height:46px; border-radius:50%; background:var(--accent); border:5px solid var(--panel); box-shadow:0 0 0 3px var(--accent)}
+.tiles{display:flex; flex-wrap:wrap; gap:14px}
+.tile{width:120px; height:120px; border-radius:22px; border:3px solid var(--line); background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:6px; font-weight:700; text-align:center; line-height:1.2}
+.tile small{font-weight:400; font-size:15px; color:inherit}
+.tile[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.pacer{position:relative; width:min(46vh, 70vw, 380px); aspect-ratio:1; display:grid; place-items:center; margin:8px 0}
+.ring{position:absolute; inset:0; border-radius:50%; transform-origin:center; transition:transform .1s linear}
+.r1{background:color-mix(in srgb, var(--accent) 16%, transparent); border:3px solid color-mix(in srgb, var(--accent) 45%, transparent)}
+.r2{background:color-mix(in srgb, var(--accent) 26%, transparent)}
+.r3{background:color-mix(in srgb, var(--accent) 42%, transparent)}
+.ptext{display:flex; align-items:baseline; justify-content:center; gap:14px; font-size:clamp(26px, 4vw, 40px); font-weight:700}
+.ptext span{min-width:1.2em; text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screen"></div>
+  <div id="overlay"></div>
+  <nav class="nav" aria-label="Main controls">
+    <button class="nb" id="nHome" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></button>
+    <button class="nb" id="nSet" aria-label="Settings" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h0"/><circle cx="16" cy="6" r="2.5"/><circle cx="10" cy="12" r="2.5"/><circle cx="18" cy="18" r="2.5"/></svg><span>Settings</span></button>
+    <button class="nb" id="nMute" aria-pressed="false"><svg id="muteIcon" viewBox="0 0 24 24"></svg><span id="muteLbl">Mute All</span></button>
+    <button class="nb" id="nBreath" aria-label="Breathe and reset" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="10.5" opacity=".5"/></svg><span>Breathe</span></button>
+  </nav>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* =================== State & storage =================== */
+const DEF = {music:.35, sfx:.6, amb:.35, muted:false, sparkle:!reduce, glow:!reduce, smooth:true, bright:100, contrast:100, theme:'device'};
+let S = Object.assign({}, DEF);
+let P = {done:{}, garden:[], uid:1};
+try{
+  const a = localStorage.getItem('hh-settings'); if(a) S = Object.assign({}, DEF, JSON.parse(a));
+  const b = localStorage.getItem('hh-progress'); if(b) P = Object.assign({done:{}, garden:[], uid:1}, JSON.parse(b));
+}catch(e){}
+function save(){ try{ localStorage.setItem('hh-settings', JSON.stringify(S)); localStorage.setItem('hh-progress', JSON.stringify(P)); }catch(e){} }
+
+/* =================== Audio (gentle, pentatonic, no alarms) =================== */
+const A = {
+  ctx:null, n:0,
+  init(){
+    if(this.ctx){ if(this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    const c = this.ctx = new AC();
+    this.master = c.createGain(); this.master.connect(c.destination);
+    this.music = c.createGain(); this.sfx = c.createGain(); this.amb = c.createGain();
+    this.verbIn = c.createGain(); this.verbIn.gain.value = .35;
+    const d = c.createDelay(1); d.delayTime.value = .32;
+    const fb = c.createGain(); fb.gain.value = .38;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+    this.verbIn.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(this.master);
+    [this.music, this.sfx].forEach(g => { g.connect(this.master); g.connect(this.verbIn); });
+    this.amb.connect(this.master);
+    this.applyVolumes(true);
+    this.startAmbient(); this.startMusic();
+  },
+  applyVolumes(now){
+    if(!this.ctx) return;
+    const t = this.ctx.currentTime, k = now ? 0.001 : 0.15;
+    this.master.gain.setTargetAtTime(S.muted ? 0 : 1, t, k);
+    this.music.gain.setTargetAtTime(S.music * .9, t, k);
+    this.sfx.gain.setTargetAtTime(S.sfx, t, k);
+    this.amb.gain.setTargetAtTime(S.amb * .8, t, k);
+  },
+  noise(kind){
+    const c = this.ctx, len = c.sampleRate * 4, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    let last = 0;
+    for(let i = 0; i < len; i++){
+      const w = Math.random() * 2 - 1;
+      if(kind === 'brown'){ last = (last + .02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w * .5;
+    }
+    const s = c.createBufferSource(); s.buffer = buf; s.loop = true; return s;
+  },
+  startAmbient(){
+    const c = this.ctx;
+    // Wind: slow brown noise
+    const wind = this.noise('brown'), wl = c.createBiquadFilter(); wl.type = 'lowpass'; wl.frequency.value = 420;
+    const wg = c.createGain(); wg.gain.value = .5;
+    const lfo = c.createOscillator(); lfo.frequency.value = .07;
+    const lg = c.createGain(); lg.gain.value = .25; lfo.connect(lg); lg.connect(wg.gain);
+    wind.connect(wl); wl.connect(wg); wg.connect(this.amb); wind.start(); lfo.start();
+    // Stream: soft band-passed noise
+    const st = this.noise('white'), bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1600; bp.Q.value = .6;
+    const sg = c.createGain(); sg.gain.value = .12;
+    const l2 = c.createOscillator(); l2.frequency.value = .35;
+    const l2g = c.createGain(); l2g.gain.value = .04; l2.connect(l2g); l2g.connect(sg.gain);
+    st.connect(bp); bp.connect(sg); sg.connect(this.amb); st.start(); l2.start();
+  },
+  tone(freq, when, dur, vol, dest, type){
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(vol, when + Math.min(.02, dur / 4));
+    g.gain.exponentialRampToValueAtTime(.0001, when + dur);
+    o.connect(g); g.connect(dest); o.start(when); o.stop(when + dur + .05);
+  },
+  startMusic(){
+    const c = this.ctx, scale = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33];
+    // very quiet drone
+    [130.81, 196].forEach(f => {
+      const o = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = f; g.gain.value = .022; lp.type = 'lowpass'; lp.frequency.value = 500;
+      o.connect(lp); lp.connect(g); g.connect(this.music); o.start();
+    });
+    const next = () => {
+      if(this.ctx && this.ctx.state === 'running'){
+        const f = scale[Math.floor(Math.random() * scale.length)], t = c.currentTime + .05;
+        const g = c.createGain(), o = c.createOscillator();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.07, t + 1.4); g.gain.linearRampToValueAtTime(0, t + 4.5);
+        o.connect(g); g.connect(this.music); o.start(t); o.stop(t + 4.6);
+      }
+      setTimeout(next, 3000 + Math.random() * 2600);
+    };
+    next();
+  },
+  chime(){
+    if(!this.ctx) return;
+    const seq = [523.25, 587.33, 659.25, 783.99, 880, 1046.5], f = seq[this.n++ % seq.length], t = this.ctx.currentTime + .01;
+    this.tone(f, t, 1.8, .3, this.sfx); this.tone(f * 2.01, t, 1.0, .08, this.sfx);
+  },
+  finish(){
+    if(!this.ctx) return;
+    const t = this.ctx.currentTime + .05;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone(f, t + i * .22, 2.2, .26, this.sfx));
+  },
+  settle(){
+    if(!this.ctx) return;
+    this.tone(392, this.ctx.currentTime + .01, .9, .18, this.sfx);
+  }
+};
+document.addEventListener('pointerdown', () => A.init(), true);
+document.addEventListener('keydown', () => A.init(), true);
+
+/* =================== Art =================== */
+const sh = '<ellipse cx="60" cy="106" rx="30" ry="5" fill="#000" opacity=".14"/>';
+const fl = (x, y, c) => '<g>' + [0, 72, 144, 216, 288].map(a => `<circle cx="${(x + 9 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(y + 9 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="7" fill="${c}"/>`).join('') + `<circle cx="${x}" cy="${y}" r="5" fill="#F0D79A"/></g>`;
+const ART = {
+  lantern:`<svg viewBox="0 0 120 120">${sh}<rect x="42" y="94" width="36" height="10" rx="3" fill="#5E5C58"/><rect x="45" y="38" width="30" height="58" rx="9" fill="#F0D79A" stroke="#5E5C58" stroke-width="4"/><rect x="52" y="46" width="16" height="42" rx="6" fill="#FFF3CF"/><path d="M40 38h40l-7-14H47z" fill="#5E5C58"/><path d="M52 24a8 8 0 0 1 16 0" fill="none" stroke="#5E5C58" stroke-width="4"/></svg>`,
+  plant:`<svg viewBox="0 0 120 120">${sh}<path d="M36 76h48l-6 30H42z" fill="#B98A6E"/><rect x="32" y="70" width="56" height="10" rx="4" fill="#C79B7F"/><path d="M60 72C56 50 40 40 30 42c2 18 14 28 30 30z" fill="#6E9E78"/><path d="M60 72C64 46 80 34 92 38c-2 20-16 30-32 34z" fill="#82B08A"/><path d="M60 72C52 50 52 32 60 16c8 16 8 34 0 56z" fill="#5E8E6A"/></svg>`,
+  bench:`<svg viewBox="0 0 120 120"><ellipse cx="60" cy="104" rx="46" ry="6" fill="#000" opacity=".14"/><rect x="24" y="66" width="12" height="34" rx="3" fill="#8F8A80"/><rect x="84" y="66" width="12" height="34" rx="3" fill="#8F8A80"/><rect x="12" y="52" width="96" height="18" rx="6" fill="#B5B0A5"/><rect x="12" y="52" width="96" height="6" rx="3" fill="#CFCAC0"/></svg>`,
+  flowers:`<svg viewBox="0 0 120 120">${sh}<path d="M34 104V62M60 104V42M86 104V58" stroke="#5E8E6A" stroke-width="4" stroke-linecap="round"/>${fl(34,56,'#D9A3A8')}${fl(60,36,'#B9A6D6')}${fl(86,52,'#E8C88A')}<path d="M34 92q-12-4-14-14M86 90q12-4 14-14" fill="none" stroke="#5E8E6A" stroke-width="4" stroke-linecap="round"/></svg>`,
+  tree:`<svg viewBox="0 0 120 120">${sh}<rect x="54" y="64" width="12" height="42" rx="3" fill="#8B6B55"/><circle cx="40" cy="58" r="18" fill="#7FAE86"/><circle cx="80" cy="58" r="18" fill="#7FAE86"/><circle cx="60" cy="42" r="26" fill="#6E9E78"/><circle cx="60" cy="24" r="14" fill="#8DBB94"/></svg>`,
+  pond:`<svg viewBox="0 0 120 120"><ellipse cx="60" cy="86" rx="54" ry="24" fill="#A8A39A"/><ellipse cx="60" cy="84" rx="45" ry="18" fill="#7FA6B8"/><ellipse cx="50" cy="80" rx="18" ry="5" fill="#A8CBD8" opacity=".7"/><circle cx="78" cy="86" r="8" fill="#6E9E78"/><circle cx="78" cy="85" r="3" fill="#E7B7BC"/></svg>`,
+  stones:`<svg viewBox="0 0 120 120"><ellipse cx="34" cy="80" rx="24" ry="11" fill="#A8A39A"/><ellipse cx="34" cy="77" rx="20" ry="7" fill="#C2BDB2"/><ellipse cx="72" cy="66" rx="22" ry="10" fill="#B5B0A5"/><ellipse cx="72" cy="63" rx="18" ry="6" fill="#CFCAC0"/><ellipse cx="88" cy="96" rx="20" ry="9" fill="#9A958C"/><ellipse cx="88" cy="93" rx="16" ry="6" fill="#B5B0A5"/></svg>`,
+  rock:`<svg viewBox="0 0 120 120">${sh}<path d="M16 102C12 72 30 44 58 42c28-2 48 22 46 60z" fill="#9C9A94"/><path d="M26 70C34 50 52 44 64 46c-8 12-28 16-38 24z" fill="#7FAE86"/><ellipse cx="82" cy="56" rx="12" ry="6" fill="#7FAE86"/><path d="M70 100c4-14 14-24 26-26" fill="none" stroke="#85837D" stroke-width="3" stroke-linecap="round"/></svg>`,
+  birdbath:`<svg viewBox="0 0 120 120">${sh}<rect x="52" y="60" width="16" height="42" rx="4" fill="#A8A39A"/><rect x="40" y="98" width="40" height="8" rx="3" fill="#8F8A80"/><path d="M20 48h80c0 18-18 26-40 26S20 66 20 48z" fill="#B5B0A5"/><ellipse cx="60" cy="48" rx="40" ry="9" fill="#8FB3C4"/><ellipse cx="50" cy="47" rx="14" ry="3" fill="#B7D3DE" opacity=".8"/></svg>`
+};
+const NAMES = {lantern:'lantern', plant:'plant', bench:'stone bench', flowers:'flowers', tree:'tree', pond:'pond', stones:'stepping stones', rock:'mossy rock', birdbath:'bird bath'};
+
+const shp = {
+  circle:c => `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="${c}"/><circle cx="38" cy="37" r="10" fill="#fff" opacity=".22"/></svg>`,
+  square:c => `<svg viewBox="0 0 100 100"><rect x="14" y="14" width="72" height="72" rx="10" fill="${c}"/><rect x="22" y="22" width="24" height="12" rx="6" fill="#fff" opacity=".22"/></svg>`,
+  smooth:() => `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="42" ry="30" fill="#A79F92"/><ellipse cx="40" cy="44" rx="22" ry="10" fill="#fff" opacity=".28"/></svg>`,
+  rough:() => `<svg viewBox="0 0 100 100"><polygon points="8,60 16,36 34,20 44,26 62,16 82,28 94,50 82,76 56,84 30,78" fill="#857E72"/><g fill="#5C564D"><circle cx="30" cy="48" r="3"/><circle cx="52" cy="40" r="3.5"/><circle cx="70" cy="58" r="3"/><circle cx="42" cy="66" r="3"/><circle cx="60" cy="72" r="2.5"/><circle cx="22" cy="62" r="2.5"/></g><g fill="#B7AFA2"><circle cx="46" cy="30" r="2.5"/><circle cx="76" cy="42" r="2.5"/><circle cx="34" cy="58" r="2"/><circle cx="66" cy="66" r="2"/></g></svg>`
+};
+function bowlSvg(col){
+  return `<svg class="bowlsvg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet"><path d="M6 28Q8 92 100 96Q192 92 194 28Z" fill="${col}"/><ellipse cx="100" cy="28" rx="94" ry="22" fill="${col}"/><ellipse cx="100" cy="30" rx="82" ry="16" fill="#000" opacity=".18"/><path d="M28 60Q40 84 78 88" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".25"/></svg>`;
+}
+
+/* =================== Tasks =================== */
+const BLUE = '#6D96B4', GREEN = '#7DAA84', VIOLET = '#9A8DB8', SAND = '#B9A88C';
+const TASKS = [
+  {
+    title:'Sort by color', blurb:'Put circles in the bowl with the same color. 6 items.',
+    text:'Put the 3 blue circles in the blue bowl. Put the 3 green circles in the green bowl.',
+    hint:'Drag each circle into the bowl with the same color.',
+    preview:shp.circle(BLUE) + shp.circle(GREEN),
+    bowls:[{key:'blue', label:'Blue bowl', color:BLUE}, {key:'green', label:'Green bowl', color:GREEN}],
+    items:['blue','green','blue','green','blue','green'].map(k => ({bowl:k, name:k + ' circle', svg:shp.circle(k === 'blue' ? BLUE : GREEN)})),
+    reward:['lantern','plant','bench']
+  },
+  {
+    title:'Sort by shape', blurb:'Put shapes in the bowl with the same shape. 6 items.',
+    text:'Put the 3 circles in the circle bowl. Put the 3 squares in the square bowl.',
+    hint:'Drag each shape into the bowl with the same shape.',
+    preview:shp.circle(VIOLET) + shp.square(VIOLET),
+    bowls:[{key:'circle', label:'Circle bowl', color:SAND, icon:shp.circle('currentColor')}, {key:'square', label:'Square bowl', color:SAND, icon:shp.square('currentColor')}],
+    items:['circle','square','circle','square','circle','square'].map(k => ({bowl:k, name:k, svg:shp[k](VIOLET)})),
+    reward:['flowers','tree','pond']
+  },
+  {
+    title:'Sort by texture', blurb:'Put stones in the bowl with the same texture. 6 items.',
+    text:'Put the 3 smooth stones in the smooth bowl. Put the 3 rough stones in the rough bowl.',
+    hint:'Smooth stones have no dots. Rough stones have dots and corners.',
+    preview:shp.smooth() + shp.rough(),
+    bowls:[{key:'smooth', label:'Smooth bowl', color:SAND, icon:shp.smooth()}, {key:'rough', label:'Rough bowl', color:SAND, icon:shp.rough()}],
+    items:['smooth','rough','smooth','rough','smooth','rough'].map(k => ({bowl:k, name:k + ' stone', svg:shp[k]()})),
+    reward:['stones','rock','birdbath']
+  }
+];
+
+/* =================== App shell =================== */
+const screenEl = $('#screen'), overlayEl = $('#overlay'), appEl = $('#app');
+let screenName = 'home', overlay = null, G = null, GD = null, ro = null;
+
+const ICON_SOUND = '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>';
+const ICON_MUTE = '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M4 4l16 16"/>';
+
+function applySettings(){
+  const r = document.documentElement;
+  appEl.style.setProperty('--br', S.bright / 100);
+  appEl.style.setProperty('--ct', S.contrast / 100);
+  if(S.theme === 'device') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', S.theme);
+  document.body.classList.toggle('nomotion', !S.smooth);
+  $('#muteIcon').innerHTML = S.muted ? ICON_MUTE : ICON_SOUND;
+  $('#muteLbl').textContent = S.muted ? 'Unmute' : 'Mute All';
+  $('#nMute').setAttribute('aria-pressed', String(S.muted));
+  A.applyVolumes();
+}
+
+function go(name){
+  closeOverlay();
+  cancelDrags();
+  if(ro){ ro.disconnect(); ro = null; }
+  G = null; GD = null; screenName = name;
+  if(name === 'home') renderHome();
+  else if(name === 'garden') renderGarden();
+}
+
+/* =================== Home =================== */
+function renderHome(){
+  screenEl.innerHTML = `
+  <section class="screen" aria-labelledby="ht">
+    <div class="top"><div><h1 id="ht">Harmony Haven</h1><p class="lead">Choose one task. There is no timer. You can stop at any time.</p></div></div>
+    <div class="cards">
+      ${TASKS.map((t, i) => `<button class="card" data-task="${i}">
+        ${P.done[i] ? '<span class="done">Completed</span>' : ''}
+        <div class="prev">${t.preview}</div><h2>${t.title}</h2><p>${t.blurb}</p></button>`).join('')}
+      <button class="card" data-garden>
+        <div class="prev">${ART.lantern}${ART.plant}</div><h2>My garden</h2>
+        <p>${P.garden.length ? P.garden.length + ' garden items. Place them anywhere.' : 'Finish a task to get garden items.'}</p>
+      </button>
+    </div>
+  </section>`;
+  $$('[data-task]', screenEl).forEach(b => b.onclick = () => startTask(+b.dataset.task));
+  $('[data-garden]', screenEl).onclick = () => go('garden');
+}
+
+/* =================== Sorting game =================== */
+function startTask(i){
+  const T = TASKS[i];
+  screenName = 'game';
+  G = {i, T, stage:null, items:[], seat:{}, count:{}, placed:0, groupStart:0, sel:null, drag:null, busy:false, done:false};
+  T.bowls.forEach(b => { G.seat[b.key] = 0; });
+  screenEl.innerHTML = `
+  <section class="screen" aria-label="${T.title}">
+    <div class="top"><div class="taskcard"><div class="prev">${T.preview}</div><p>${T.text}</p></div></div>
+    <div class="status" id="status" role="status" aria-live="polite">${T.hint}</div>
+    <div class="stage" id="stage">
+      ${bowlHtml(T.bowls[0], 0)}
+      <div class="tray" id="tray"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+      ${bowlHtml(T.bowls[1], 1)}
+      <div class="fx" id="fx"></div>
+    </div>
+    <div class="progress" id="progress"></div>
+  </section>`;
+  G.stage = $('#stage');
+  G.bowlEls = {};
+  $$('.bowl', G.stage).forEach(b => {
+    G.bowlEls[b.dataset.key] = b;
+    b.onclick = () => { if(G.sel && !G.busy) dropOn(G.sel, b.dataset.key); };
+  });
+  updateProgress();
+  spawnGroup();
+  ro = new ResizeObserver(layoutGame); ro.observe(G.stage);
+}
+function bowlHtml(b, side){
+  return `<button class="bowl" data-key="${b.key}" data-side="${side}" aria-label="${b.label}">
+    ${bowlSvg(b.color)}
+    <span class="blabel"><span class="row">${b.icon ? `<span style="display:inline-flex;color:var(--ink)">${b.icon}</span>` : ''}<span>${b.label}</span></span><span class="bcount" id="c-${b.key}">0 of 3</span></span>
+  </button>`;
+}
+function say(msg){ const s = $('#status'); if(s) s.textContent = msg; }
+function updateProgress(){
+  const n = G.T.items.length;
+  $('#progress').innerHTML = `<span>Placed ${G.placed} of ${n}</span><span class="dots">${G.T.items.map((_, k) => `<i class="${k < G.placed ? 'on' : ''}"></i>`).join('')}</span>`;
+}
+function spawnGroup(){
+  const group = G.T.items.slice(G.groupStart, G.groupStart + 3);
+  group.forEach((it, k) => {
+    const el = document.createElement('div');
+    el.className = 'item enter'; el.tabIndex = 0; el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', it.name + '. Drag into a bowl, or press Enter and then choose a bowl.');
+    el.innerHTML = it.svg;
+    const o = {el, item:it, bowlKey:it.bowl, slot:k, seated:false, seat:0};
+    G.items.push(o);
+    G.stage.appendChild(el);
+    wireItem(o);
+    place(el, ...slotCenter(k), 1);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('enter')));
+  });
+  G.busy = false;
+}
+function stageRect(){ return G.stage.getBoundingClientRect(); }
+function slotCenter(k){
+  const sr = stageRect(), r = $$('.slot', G.stage)[k].getBoundingClientRect();
+  return [r.left + r.width / 2 - sr.left, r.top + r.height / 2 - sr.top];
+}
+function place(el, cx, cy, sc){
+  const w = el.offsetWidth;
+  el.style.left = (cx - w / 2) + 'px'; el.style.top = (cy - w / 2) + 'px'; el.style.transform = `scale(${sc})`;
+}
+function seatPos(o){
+  const sr = stageRect(), br = G.bowlEls[o.bowlKey].getBoundingClientRect(), t = o.el.offsetWidth;
+  const sp = Math.min(t * .6, br.width / 3.15);
+  return [br.left + br.width / 2 - sr.left + (o.seat - 1) * sp, br.top - sr.top + br.height * .40, sp / t * 1.02];
+}
+function layoutGame(){
+  if(!G || G.done || !G.stage.isConnected) return;
+  G.items.forEach(o => {
+    if(G.drag && G.drag.obj === o && G.drag.moved) return;
+    if(o.seated){ const [x, y, s] = seatPos(o); place(o.el, x, y, s); }
+    else place(o.el, ...slotCenter(o.slot), 1);
+  });
+}
+function goHome(o){ place(o.el, ...slotCenter(o.slot), 1); }
+
+function wireItem(o){
+  const el = o.el;
+  el.addEventListener('pointerdown', e => {
+    if(G.busy || o.seated) return;
+    e.preventDefault();
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    const r = el.getBoundingClientRect();
+    G.drag = {obj:o, id:e.pointerId, ox:e.clientX - r.left, oy:e.clientY - r.top, sx:e.clientX, sy:e.clientY, moved:false};
+    el.classList.add('dragging');
+  });
+  el.addEventListener('pointermove', e => {
+    const d = G.drag; if(!d || d.obj !== o || e.pointerId !== d.id) return;
+    if(!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 6) d.moved = true;
+    if(!d.moved) return;
+    const sr = stageRect();
+    el.style.left = (e.clientX - d.ox - sr.left) + 'px';
+    el.style.top = (e.clientY - d.oy - sr.top) + 'px';
+    el.style.transform = 'scale(1.07)';
+    markNear(nearBowl(el));
+  });
+  const end = (e, cancelled) => {
+    const d = G && G.drag; if(!d || d.obj !== o || e.pointerId !== d.id) return;
+    try{ el.releasePointerCapture(e.pointerId); }catch(_){}
+    el.classList.remove('dragging');
+    G.drag = null; markNear(null);
+    if(!d.moved){
+      if(cancelled) return;
+      selectItem(G.sel === o ? null : o);
+      return;
+    }
+    if(cancelled){ goHome(o); return; }
+    dropOn(o, nearBowl(el));
+  };
+  el.addEventListener('pointerup', e => end(e, false));
+  el.addEventListener('pointercancel', e => end(e, true));
+  el.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); if(!G.busy && !o.seated) selectItem(G.sel === o ? null : o); }
+  });
+}
+function selectItem(o){
+  if(G.sel) G.sel.el.classList.remove('selected');
+  G.sel = o;
+  if(o){ o.el.classList.add('selected'); say('Item selected. Tap a bowl to place it.'); }
+  else say(G.T.hint);
+}
+function nearBowl(el){
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, PAD = 30;
+  let best = null, bd = 1e9;
+  Object.keys(G.bowlEls).forEach(k => {
+    const b = G.bowlEls[k].getBoundingClientRect();
+    if(cx > b.left - PAD && cx < b.right + PAD && cy > b.top - PAD && cy < b.bottom + PAD){
+      const d = Math.hypot(cx - (b.left + b.width / 2), cy - (b.top + b.height / 2));
+      if(d < bd){ bd = d; best = k; }
+    }
+  });
+  return best;
+}
+function markNear(key){ Object.keys(G.bowlEls).forEach(k => G.bowlEls[k].classList.toggle('near', k === key)); }
+
+function dropOn(o, key){
+  if(G.sel){ G.sel.el.classList.remove('selected'); G.sel = null; }
+  if(!key){ goHome(o); say('Drag the item into a bowl.'); return; }
+  if(key !== o.bowlKey){
+    goHome(o);
+    say('That bowl is not the match. The item moved back to the middle. Try the other bowl.');
+    return;
+  }
+  // Correct
+  o.seated = true; o.seat = G.seat[key]++;
+  o.el.classList.add('seated'); o.el.tabIndex = -1;
+  const [x, y, s] = seatPos(o); place(o.el, x, y, s);
+  G.placed++;
+  $('#c-' + key).textContent = G.seat[key] + ' of 3';
+  const bowl = G.bowlEls[key], b = TASKS[G.i].bowls.find(z => z.key === key);
+  say(`Correct. The ${o.item.name} is in the ${b.label.toLowerCase()}.`);
+  A.chime(); sparkle(bowl); glow(bowl); updateProgress();
+  const inGroup = G.items.filter(z => z.seated).length - G.groupStart;
+  if(G.placed >= G.T.items.length){ G.busy = true; setTimeout(complete, 1200); }
+  else if(inGroup >= 3){ G.busy = true; setTimeout(() => { G.groupStart += 3; spawnGroup(); say('The next 3 items are ready. ' + G.T.hint); }, 1100); }
+}
+function sparkle(bowl){
+  if(!S.sparkle || !S.smooth) return;
+  const fx = $('#fx'), sr = stageRect(), r = bowl.getBoundingClientRect();
+  const cx = r.left + r.width / 2 - sr.left, cy = r.top + r.height * .4 - sr.top;
+  for(let i = 0; i < 10; i++){
+    const d = document.createElement('i'), a = Math.random() * 6.283, dist = 40 + Math.random() * 45;
+    d.className = 'sp'; d.style.left = cx + 'px'; d.style.top = cy + 'px';
+    d.style.setProperty('--dx', Math.cos(a) * dist + 'px'); d.style.setProperty('--dy', Math.sin(a) * dist + 'px');
+    fx.appendChild(d); setTimeout(() => d.remove(), 1400);
+  }
+}
+function glow(bowl){
+  if(!S.glow || !S.smooth) return;
+  bowl.classList.remove('glow'); void bowl.offsetWidth; bowl.classList.add('glow');
+  setTimeout(() => bowl.classList.remove('glow'), 1300);
+}
+function complete(){
+  if(!G) return;
+  G.done = true;
+  const T = G.T;
+  T.reward.forEach(type => P.garden.push({uid:P.uid++, type, x:null, y:null}));
+  P.done[G.i] = true; save();
+  A.finish();
+  const list = T.reward.map(r => NAMES[r]);
+  const txt = list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];
+  G.stage.innerHTML = `<div class="complete">
+    <h2>Task complete</h2>
+    <div class="rewardrow">${T.reward.map(r => ART[r]).join('')}</div>
+    <p class="lead" style="margin:0">You received 3 garden items: ${txt}.</p>
+    <div class="btnrow"><button class="big primary" id="toGarden">Go to my garden</button><button class="big" id="toTasks">Choose another task</button></div>
+  </div>`;
+  $('#progress').textContent = 'Placed ' + T.items.length + ' of ' + T.items.length;
+  say('You can place the new items in your garden now.');
+  $('#toGarden').onclick = () => go('garden');
+  $('#toTasks').onclick = () => go('home');
+}
+
+/* =================== Garden sandbox =================== */
+let zTop = 30;
+function renderGarden(){
+  const total = P.garden.length;
+  screenEl.innerHTML = `
+  <section class="screen" id="gscreen" aria-labelledby="gt">
+    <div class="top"><div><h1 id="gt">My garden</h1><p class="lead" id="gcount"></p></div></div>
+    <div class="scene" id="scene">
+      <svg viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+        <circle cx="820" cy="110" r="46" style="fill:var(--orb)" opacity=".85"/>
+        <path d="M0 330 Q180 250 360 320 T700 300 T1000 320 V600 H0Z" style="fill:var(--hill1)"/>
+        <path d="M0 400 Q220 330 460 396 T1000 380 V600 H0Z" style="fill:var(--hill2)"/>
+        <path d="M0 470 Q300 430 560 470 T1000 458 V600 H0Z" style="fill:var(--ground)"/>
+      </svg>
+      ${total ? '' : '<div class="msg">Your garden is empty. Finish a sorting task to get 3 garden items.</div>'}
+    </div>
+    <div class="shelf" id="shelf"></div>
+  </section>`;
+  GD = {screen:$('#gscreen'), scene:$('#scene'), shelf:$('#shelf'), els:{}, drag:null};
+  P.garden.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'gitem'; el.tabIndex = 0; el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', NAMES[g.type] + '. Drag to move it.');
+    el.innerHTML = ART[g.type];
+    GD.screen.appendChild(el); GD.els[g.uid] = el;
+    wireGarden(g, el);
+  });
+  updateGardenText();
+  ro = new ResizeObserver(layoutGarden); ro.observe(GD.scene);
+  layoutGarden(true);
+}
+function updateGardenText(){
+  const placed = P.garden.filter(g => g.x != null).length, total = P.garden.length;
+  $('#gcount').textContent = total ? `Drag items into the garden and put them anywhere. Placed ${placed} of ${total}. There are no points.` : 'This space is for decorating. There are no points.';
+  const un = total - placed;
+  $('#shelf').textContent = (total && un === 0) ? 'All items are placed. Drag an item here to put it back.' : (total ? '' : 'Items you earn will appear here.');
+}
+function layoutGarden(instant){
+  if(!GD || !GD.screen.isConnected) return;
+  const scr = GD.screen.getBoundingClientRect(), sc = GD.scene.getBoundingClientRect(), shf = GD.shelf.getBoundingClientRect();
+  const first = GD.els[(P.garden[0] || {}).uid]; if(!first) return;
+  const t = first.offsetWidth, un = P.garden.filter(g => g.x == null);
+  const step = un.length > 1 ? Math.min(t + 14, (shf.width - t - 24) / (un.length - 1)) : 0;
+  let k = 0;
+  P.garden.forEach(g => {
+    const el = GD.els[g.uid]; if(!el || (GD.drag && GD.drag.g === g && GD.drag.moved)) return;
+    let cx, cy;
+    if(g.x == null){ cx = shf.left - scr.left + 12 + t / 2 + k * step; cy = shf.top - scr.top + shf.height / 2; k++; }
+    else { cx = sc.left - scr.left + g.x * sc.width; cy = sc.top - scr.top + g.y * sc.height; }
+    if(instant){ el.style.transition = 'none'; }
+    el.style.left = (cx - t / 2) + 'px'; el.style.top = (cy - t / 2) + 'px';
+    if(instant){ void el.offsetWidth; el.style.transition = ''; }
+  });
+}
+function wireGarden(g, el){
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    const r = el.getBoundingClientRect();
+    GD.drag = {g, id:e.pointerId, ox:e.clientX - r.left, oy:e.clientY - r.top, sx:e.clientX, sy:e.clientY, moved:false};
+    el.classList.add('dragging'); el.style.zIndex = ++zTop;
+  });
+  el.addEventListener('pointermove', e => {
+    const d = GD.drag; if(!d || d.g !== g || e.pointerId !== d.id) return;
+    if(!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 6) d.moved = true;
+    if(!d.moved) return;
+    const scr = GD.screen.getBoundingClientRect();
+    el.style.left = (e.clientX - d.ox - scr.left) + 'px'; el.style.top = (e.clientY - d.oy - scr.top) + 'px';
+  });
+  const end = (e, cancelled) => {
+    const d = GD && GD.drag; if(!d || d.g !== g || e.pointerId !== d.id) return;
+    try{ el.releasePointerCapture(e.pointerId); }catch(_){}
+    el.classList.remove('dragging');
+    GD.drag = null;
+    if(d.moved && !cancelled){
+      const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const sc = GD.scene.getBoundingClientRect(), shf = GD.shelf.getBoundingClientRect();
+      if(cy >= shf.top - 10 && cy <= shf.bottom + 10 && cx >= shf.left && cx <= shf.right){ g.x = null; g.y = null; A.settle(); }
+      else if(cx >= sc.left && cx <= sc.right && cy >= sc.top && cy <= sc.bottom){
+        g.x = Math.min(.97, Math.max(.03, (cx - sc.left) / sc.width));
+        g.y = Math.min(.95, Math.max(.08, (cy - sc.top) / sc.height));
+        A.settle();
+      }
+      save(); updateGardenText();
+    }
+    layoutGarden();
+  };
+  el.addEventListener('pointerup', e => end(e, false));
+  el.addEventListener('pointercancel', e => end(e, true));
+  el.addEventListener('keydown', e => {
+    // Keyboard alternative: Enter places on the ground or returns to shelf; arrows nudge.
+    const step = .03;
+    if(e.key === 'Enter'){ e.preventDefault(); if(g.x == null){ g.x = .5; g.y = .7; } else { g.x = null; g.y = null; } save(); updateGardenText(); layoutGarden(); }
+    else if(g.x != null && e.key.startsWith('Arrow')){
+      e.preventDefault();
+      if(e.key === 'ArrowLeft') g.x = Math.max(.03, g.x - step); if(e.key === 'ArrowRight') g.x = Math.min(.97, g.x + step);
+      if(e.key === 'ArrowUp') g.y = Math.max(.08, g.y - step); if(e.key === 'ArrowDown') g.y = Math.min(.95, g.y + step);
+      save(); layoutGarden();
+    }
+  });
+}
+
+function cancelDrags(){
+  if(G && G.drag){ G.drag.obj.el.classList.remove('dragging'); goHome(G.drag.obj); G.drag = null; markNear(null); }
+  if(GD && GD.drag){ GD.els[GD.drag.g.uid].classList.remove('dragging'); GD.drag = null; layoutGarden(); }
+}
+
+/* =================== Overlays: Settings & Breathe =================== */
+function closeOverlay(){
+  stopBreath();
+  overlay = null; overlayEl.innerHTML = '';
+  $('#nSet').setAttribute('aria-pressed', 'false'); $('#nBreath').setAttribute('aria-pressed', 'false');
+}
+function openOverlay(name){
+  cancelDrags(); closeOverlay(); overlay = name;
+  if(name === 'settings'){ overlayEl.innerHTML = settingsHtml(); wireSettings(); $('#nSet').setAttribute('aria-pressed', 'true'); }
+  else { overlayEl.innerHTML = breatheHtml(); startBreath(); $('#nBreath').setAttribute('aria-pressed', 'true'); }
+}
+function toggleOverlay(name){ if(overlay === name) closeOverlay(); else openOverlay(name); }
+
+function sliderRow(id, label, min, max, unit){
+  return `<div class="row-s"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="1"><output id="${id}-o" for="${id}"></output></div>`;
+}
+function settingsHtml(){
+  const tile = (k, label) => `<button class="tile" data-tog="${k}" role="switch" aria-pressed="false">${label}<small></small></button>`;
+  const th = (k, label) => `<button class="tile" data-theme="${k}" aria-pressed="false">${label}</button>`;
+  return `<section class="overlay" role="dialog" aria-label="Settings"><div class="ovin">
+    <div><h1>Settings</h1><p class="lead">You control the sound and the look. Changes save automatically.</p></div>
+    <button class="big primary" id="sClose" style="align-self:flex-start">Close settings</button>
+    <div class="group"><h2>Sound</h2>
+      ${sliderRow('vMusic', 'Music', 0, 100)}${sliderRow('vSfx', 'Sound effects', 0, 100)}${sliderRow('vAmb', 'Ambient sounds', 0, 100)}
+    </div>
+    <div class="group"><h2>Effects</h2><div class="tiles">${tile('sparkle', 'Sparkles')}${tile('glow', 'Glow')}${tile('smooth', 'Smooth motion')}</div></div>
+    <div class="group"><h2>Screen</h2>
+      ${sliderRow('vBr', 'Brightness', 50, 100)}${sliderRow('vCt', 'Contrast', 50, 100)}
+      <div class="tiles">${th('light', 'Light')}${th('dark', 'Dark')}${th('device', 'Match device')}</div>
+    </div>
+    <div class="group"><h2>Reset</h2><div class="tiles"><button class="tile" id="sReset">Reset settings</button></div></div>
+  </div></section>`;
+}
+function syncSettings(){
+  const set = (id, v) => { const el = $('#' + id); if(el){ el.value = v; $('#' + id + '-o').textContent = v + '%'; } };
+  set('vMusic', Math.round(S.music * 100)); set('vSfx', Math.round(S.sfx * 100)); set('vAmb', Math.round(S.amb * 100));
+  set('vBr', S.bright); set('vCt', S.contrast);
+  $$('[data-tog]').forEach(b => { const on = !!S[b.dataset.tog]; b.setAttribute('aria-pressed', String(on)); $('small', b).textContent = on ? 'On' : 'Off'; });
+  $$('[data-theme]', overlayEl).forEach(b => b.setAttribute('aria-pressed', String(S.theme === b.dataset.theme)));
+}
+function wireSettings(){
+  const bind = (id, fn) => $('#' + id).addEventListener('input', e => { fn(+e.target.value); $('#' + id + '-o').textContent = e.target.value + '%'; applySettings(); save(); });
+  bind('vMusic', v => S.music = v / 100); bind('vSfx', v => S.sfx = v / 100); bind('vAmb', v => S.amb = v / 100);
+  bind('vBr', v => S.bright = v); bind('vCt', v => S.contrast = v);
+  $('#vSfx').addEventListener('change', () => A.chime());
+  $$('[data-tog]').forEach(b => b.onclick = () => { S[b.dataset.tog] = !S[b.dataset.tog]; applySettings(); save(); syncSettings(); });
+  $$('[data-theme]', overlayEl).forEach(b => b.onclick = () => { S.theme = b.dataset.theme; applySettings(); save(); syncSettings(); });
+  $('#sReset').onclick = () => { S = Object.assign({}, DEF); applySettings(); save(); syncSettings(); };
+  $('#sClose').onclick = closeOverlay;
+  syncSettings();
+}
+
+let breath = null;
+function breatheHtml(){
+  return `<section class="overlay" role="dialog" aria-label="Breathe and reset"><div class="ovin center">
+    <div><h1>Breathe &amp; Reset</h1><p class="lead">Your game is paused. Breathe in for 4 seconds. Breathe out for 4 seconds.</p></div>
+    <div class="pacer" aria-hidden="true"><i class="ring r1" id="b1"></i><i class="ring r2" id="b2"></i><i class="ring r3" id="b3"></i></div>
+    <div class="ptext" role="status" aria-live="off"><b id="bLabel">Breathe in</b><span id="bCount">1</span></div>
+    <button class="big primary" id="bBack">Back to game</button>
+  </div></section>`;
+}
+function startBreath(){
+  $('#bBack').onclick = closeOverlay;
+  const t0 = performance.now();
+  let lastLabel = '';
+  const frame = now => {
+    if(overlay !== 'breathe') return;
+    const s = ((now - t0) / 1000) % 8, inhale = s < 4, p = inhale ? s / 4 : 1 - (s - 4) / 4;
+    const e = .5 - .5 * Math.cos(Math.PI * p);
+    let k = S.smooth ? .34 + .66 * e : (inhale ? 1 : .34);
+    const b1 = $('#b1'), b2 = $('#b2'), b3 = $('#b3'); if(!b1) return;
+    b1.style.transform = `scale(${k})`; b2.style.transform = `scale(${k * .72})`; b3.style.transform = `scale(${k * .46})`;
+    const label = inhale ? 'Breathe in' : 'Breathe out';
+    if(label !== lastLabel){ $('#bLabel').textContent = label; lastLabel = label; }
+    $('#bCount').textContent = Math.floor(inhale ? s : s - 4) + 1;
+    breath = requestAnimationFrame(frame);
+  };
+  breath = requestAnimationFrame(frame);
+}
+function stopBreath(){ if(breath){ cancelAnimationFrame(breath); breath = null; } }
+
+/* =================== Navigation wiring =================== */
+$('#nHome').onclick = () => go('home');
+$('#nSet').onclick = () => toggleOverlay('settings');
+$('#nBreath').onclick = () => toggleOverlay('breathe');
+$('#nMute').onclick = () => { S.muted = !S.muted; applySettings(); save(); };
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && overlay) closeOverlay(); });
+window.addEventListener('resize', () => { if(G) layoutGame(); if(GD) layoutGarden(true); });
+
+applySettings();
+go('home');
+})();
+</script>
+</body>
+</html>
